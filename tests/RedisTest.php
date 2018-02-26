@@ -198,8 +198,13 @@ class RedisTest extends \PHPUnit_Framework_TestCase
         $client = $this->getMockBuilder('Predis\Client')
             ->disableOriginalConstructor()
             ->disableOriginalClone()
-            ->setMethods(array('del'))
+            ->setMethods(array('del', 'exists'))
             ->getMock();
+
+        $client->expects($this->once())
+            ->method('exists')
+            ->with('test_key')
+            ->will($this->returnValue(1));
 
         $client->expects($this->once())
             ->method('del')
@@ -218,8 +223,13 @@ class RedisTest extends \PHPUnit_Framework_TestCase
         $client = $this->getMockBuilder('Predis\Client')
             ->disableOriginalConstructor()
             ->disableOriginalClone()
-            ->setMethods(array('del'))
+            ->setMethods(array('del', 'exists'))
             ->getMock();
+
+        $client->expects($this->once())
+            ->method('exists')
+            ->with('test_key')
+            ->will($this->returnValue(1));
 
         $client->expects($this->once())
             ->method('del')
@@ -228,6 +238,26 @@ class RedisTest extends \PHPUnit_Framework_TestCase
 
         $redis = new Redis($client);
         $this->assertFalse($redis->delete('test key'));
+    }
+
+    /**
+     *
+     */
+    public function testDeletingNonexistantKeys()
+    {
+        $client = $this->getMockBuilder('Predis\Client')
+            ->disableOriginalConstructor()
+            ->disableOriginalClone()
+            ->setMethods(array('del', 'exists'))
+            ->getMock();
+
+        $client->expects($this->once())
+            ->method('exists')
+            ->with('iamnotthere')
+            ->will($this->returnValue(0));
+
+        $redis = new Redis($client);
+        $this->assertTrue($redis->delete('iamnotthere'));
     }
 
     /**
@@ -416,8 +446,13 @@ class RedisTest extends \PHPUnit_Framework_TestCase
         $client = $this->getMockBuilder('Predis\Client')
             ->disableOriginalConstructor()
             ->disableOriginalClone()
-            ->setMethods(array('del'))
+            ->setMethods(array('del', 'exists'))
             ->getMock();
+
+        $client
+            ->expects($this->exactly(2))
+            ->method('exists')
+            ->willReturn(1);
 
         $client
             ->expects($this->exactly(2))
@@ -438,8 +473,13 @@ class RedisTest extends \PHPUnit_Framework_TestCase
         $client = $this->getMockBuilder('Predis\Client')
             ->disableOriginalConstructor()
             ->disableOriginalClone()
-            ->setMethods(array('del'))
+            ->setMethods(array('del', 'exists'))
             ->getMock();
+
+        $client
+            ->expects($this->exactly(1))
+            ->method('exists')
+            ->willReturn(1);
 
         $client
             ->method('del')
@@ -459,7 +499,7 @@ class RedisTest extends \PHPUnit_Framework_TestCase
         $client = $this->getMockBuilder('Predis\Client')
             ->disableOriginalConstructor()
             ->disableOriginalClone()
-            ->setMethods(array('del'))
+            ->setMethods(array('del', 'exists'))
             ->getMock();
 
         $redis = new Redis($client);

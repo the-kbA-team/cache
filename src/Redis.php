@@ -217,7 +217,11 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     public function delete($key)
     {
         $key_compat = $this->redisKeyCompat($key);
-        $result = $this->client->del($key_compat);
+        if($this->has($key)) {
+            $result = $this->client->del($key_compat);
+        } else {
+            $result = 1;
+        }
         return (1 == $result);
     }
 

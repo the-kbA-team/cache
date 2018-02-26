@@ -277,13 +277,19 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function setMultiple($values, $ttl = null)
     {
-        if (!is_array($values)) {
+        if (!$this->isAssoc($values)) {
             throw new Exceptions\InvalidArgumentException(
                 "Values must be an associative array of key=>value!"
             );
         }
         try {
             foreach ($values as $key => $value) {
+                /* Problem: PHP transforms array('0' => 'string') to array(0 => 'string').
+                 * fix: in case of an array, convert int to string.
+                 */
+                if (is_int($key)) {
+                    $key = (string)$key;
+                }
                 if (!$this->set($key, $value, $ttl)) {
                     throw new Exceptions\CacheException();
                 }
@@ -398,5 +404,22 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             'Time-to-live must either be an integer, a DateInterval or null, "%s" given',
             is_object($ttl) ? get_class($ttl) : gettype($ttl)
         ));
+    }
+
+    /**
+     * Determine whether the given array is associative or not.
+     * @param array $arr The array to check.
+     * @return bool is associative?
+     * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException in case not array was given.
+     */
+    private function isAssoc($arr)
+    {
+        if (!is_array($arr)) {
+            throw new Exceptions\InvalidArgumentException("Must be an array!");
+        }
+        if (array() === $arr) {
+            return false;
+        }
+        return array_keys($arr) !== range(0, count($arr) - 1);
     }
 }

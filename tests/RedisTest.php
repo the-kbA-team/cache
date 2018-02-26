@@ -4,6 +4,16 @@ namespace Tests\kbATeam\Cache;
 
 use kbATeam\Cache\Redis;
 
+/**
+ * Class Tests\kbATeam\Cache\RedisTest
+ *
+ * Redis simple cache adapter test.
+ *
+ * @category Tests
+ * @package  Tests\kbATeam\Cache
+ * @license  MIT
+ * @link     https://github.com/the-kbA-team/cache.git Repository
+ */
 class RedisTest extends \PHPUnit_Framework_TestCase
 {
 
@@ -175,7 +185,7 @@ class RedisTest extends \PHPUnit_Framework_TestCase
         $redis = new Redis($client);
         $this->setExpectedException(
             '\kbATeam\Cache\Exceptions\InvalidArgumentException',
-            "Invalid Argument: TTL must either be null, an integer or an instance of \DateInterval!"
+            'Invalid Argument: Time-to-live must either be an integer, a DateInterval or null, "string" given'
         );
         $redis->set("test key", "test value", "303");
     }

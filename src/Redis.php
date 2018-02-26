@@ -192,16 +192,11 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     {
         $key_compat = $this->redisKeyCompat($key);
         $value_ser = serialize($value);
+        $ttl = $this->normalizeTtl($ttl);
         if (is_null($ttl)) {
             $result = $this->client->setnx($key_compat, $value_ser);
-        } elseif (is_integer($ttl)) {
-            $result = $this->client->setex($key_compat, $ttl, $value_ser);
-        } elseif ($ttl instanceof \DateInterval) {
-            $result = $this->client->setex($key_compat, $ttl->s, $value_ser);
         } else {
-            throw new Exceptions\InvalidArgumentException(
-                "TTL must either be null, an integer or an instance of \DateInterval!"
-            );
+            $result = $this->client->setex($key_compat, $ttl, $value_ser);
         }
         return ('OK' === $result);
     }
@@ -374,5 +369,29 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             throw new Exceptions\InvalidArgumentException("Given key is empty!");
         }
         return $this->encodeRedisKey($str);
+    }
+
+    /**
+     * Normalize TTL value.
+     * @param int|\DateInterval|null $ttl The TTL to normalize.
+     * @return null|int Integer in case the normalized TTL is greater than zero, null otherwise.
+     * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException in case the TTL is neither integer,
+     *                                                            nor \DateInterval, nor null.
+     */
+    private function normalizeTtl($ttl)
+    {
+        if (is_null($ttl)) {
+            return null;
+        }
+        if ($ttl instanceof \DateInterval) {
+            $ttl = (int) \DateTime::createFromFormat('U', 0)->add($ttl)->format('U');
+        }
+        if (is_int($ttl)) {
+            return 0 < $ttl ? $ttl : null;
+        }
+        throw new Exceptions\InvalidArgumentException(sprintf(
+            'Time-to-live must either be an integer, a DateInterval or null, "%s" given',
+            is_object($ttl) ? get_class($ttl) : gettype($ttl)
+        ));
     }
 }

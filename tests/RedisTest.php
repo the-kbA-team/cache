@@ -347,8 +347,27 @@ class RedisTest extends \PHPUnit_Framework_TestCase
 
         $redis = new Redis($client);
         $this->assertTrue(
-            $redis->setMultiple(array('key1' => 'value 1', 'key 2' => 'value two'))
+            $redis->setMultiple(array('key1' => 'value 1', '1' => 'value two'))
         );
+    }
+
+    /**
+     * Test setting multiple values at once.
+     */
+    public function testSetEmptyMultiple()
+    {
+        $client = $this->getMockBuilder('Predis\Client')
+            ->disableOriginalConstructor()
+            ->disableOriginalClone()
+            ->setMethods(array('setnx'))
+            ->getMock();
+
+        $redis = new Redis($client);
+        $this->setExpectedException(
+            '\kbATeam\Cache\Exceptions\InvalidArgumentException',
+            'Invalid Argument: Values must be an associative array of key=>value!'
+        );
+        $redis->setMultiple(array());
     }
 
     /**
@@ -384,7 +403,7 @@ class RedisTest extends \PHPUnit_Framework_TestCase
         $redis = new Redis($client);
         $this->setExpectedException(
             '\kbATeam\Cache\Exceptions\InvalidArgumentException',
-            "Invalid Argument: Values must be an associative array of key=>value!"
+            'Invalid Argument: Must be an array!'
         );
         $redis->setMultiple('test value');
     }

@@ -365,9 +365,12 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     private function redisKeyCompat($str)
     {
         if (!is_string($str)) {
-            throw new Exceptions\InvalidArgumentException("Given key is not a string!");
+            throw new Exceptions\InvalidArgumentException(sprintf(
+                'Expected key to be a string, "%s" given!',
+                is_object($str) ? get_class($str) : gettype($str)
+            ));
         }
-        if (empty($str)) {
+        if (mb_strlen($str) < 1) {
             throw new Exceptions\InvalidArgumentException("Given key is empty!");
         }
         return $this->encodeRedisKey($str);

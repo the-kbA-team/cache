@@ -83,7 +83,7 @@ class RedisTest extends \PHPUnit_Framework_TestCase
         $redis = new Redis($client);
         $this->setExpectedException(
             '\kbATeam\Cache\Exceptions\InvalidArgumentException',
-            "Invalid Argument: Given key is not a string!"
+            'Invalid Argument: Expected key to be a string, "boolean" given!'
         );
         $redis->get(true);
     }

@@ -192,13 +192,15 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     {
         $key_compat = $this->redisKeyCompat($key);
         $value_ser = serialize($value);
-        $ttl = $this->normalizeTtl($ttl);
-        if (is_null($ttl)) {
-            $result = $this->client->setnx($key_compat, $value_ser);
+        $ttl_norm = $this->normalizeTtl($ttl);
+        if (is_null($ttl_norm)) {
+            $response = $this->client->setnx($key_compat, $value_ser);
+            $result = (1 === $response);
         } else {
-            $result = $this->client->setex($key_compat, $ttl, $value_ser);
+            $response = $this->client->setex($key_compat, $ttl_norm, $value_ser);
+            $result = ('OK' == (string) $response);
         }
-        return ('OK' === $result);
+        return $result;
     }
 
     /**

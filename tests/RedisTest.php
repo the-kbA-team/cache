@@ -125,7 +125,7 @@ class RedisTest extends \PHPUnit_Framework_TestCase
         $client->expects($this->once())
             ->method('setnx')
             ->with('test_key', serialize('test value'))
-            ->will($this->returnValue("OK"));
+            ->will($this->returnValue(1));
 
         $redis = new Redis($client);
         $this->assertTrue($redis->set('test:key', 'test value'));
@@ -343,7 +343,7 @@ class RedisTest extends \PHPUnit_Framework_TestCase
         $client
             ->expects($this->exactly(2))
             ->method('setnx')
-            ->willReturn('OK');
+            ->willReturn(1);
 
         $redis = new Redis($client);
         $this->assertTrue(
@@ -364,7 +364,7 @@ class RedisTest extends \PHPUnit_Framework_TestCase
 
         $client
             ->method('setnx')
-            ->willReturn('ERR');
+            ->willReturn(0);
 
         $redis = new Redis($client);
         $this->assertFalse($redis->setMultiple(array('key1' => 'value 1', 'key 2' => 'value two')));

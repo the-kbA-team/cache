@@ -26,6 +26,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function __construct(\Redis $client)
     {
+        $client->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
         $this->client = $client;
     }
 
@@ -69,7 +70,6 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         if (!$client->select($database)) {
             throw new Exceptions\InvalidArgumentException(sprintf("Invalid database index %u!", $database));
         }
-        $client->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
         return new self($client);
     }
 

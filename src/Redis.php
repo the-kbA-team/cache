@@ -403,9 +403,11 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     private function isAssoc($arr)
     {
+        //validate whether given argument is an array.
         if (!is_array($arr)) {
             throw new Exceptions\InvalidArgumentException("Must be an array!");
         }
+        //an empty array is no associative array!
         if (array() === $arr) {
             return false;
         }

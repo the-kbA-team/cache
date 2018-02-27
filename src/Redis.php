@@ -336,6 +336,9 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     private function redisValidateKey($str)
     {
+        if (is_int($str)) {
+            $str = (string)$str;
+        }
         if (!is_string($str)) {
             throw new Exceptions\InvalidArgumentException(sprintf(
                 'Expected key to be a string, "%s" given!',

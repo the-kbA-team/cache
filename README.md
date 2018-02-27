@@ -57,7 +57,7 @@ vendor/bin/phpunit
 [maintainability-badge]: https://api.codeclimate.com/v1/badges/96a719b084cfe899e643/maintainability
 [maintainability]: https://codeclimate.com/github/the-kbA-team/cache/maintainability
 [coverage-badge]: https://api.codeclimate.com/v1/badges/96a719b084cfe899e643/test_coverage
-[coverage]: https://codeclimate.com/github/the-kbA-team/cache/test_coverage****
+[coverage]: https://codeclimate.com/github/the-kbA-team/cache/test_coverage
 [psr16]: https://www.php-fig.org/psr/psr-16/
 [redis]: https://redis.io/
 [predis]: https://github.com/nrk/predis

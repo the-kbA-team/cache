@@ -113,7 +113,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function get($key, $default = null)
     {
-        $key_compat = $this->redisKeyCompat($key);
+        $key_compat = $this->redisNormalizeKey($key);
         $result = $this->client->get($key_compat);
         if (empty($result)) {
             $result = $default;
@@ -141,8 +141,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function set($key, $value, $ttl = null)
     {
-        $key_compat = $this->redisKeyCompat($key);
-        $ttl_norm = $this->normalizeTtl($ttl);
+        $key_compat = $this->redisNormalizeKey($key);
+        $ttl_norm = $this->redisNormalizeTtl($ttl);
         if (is_null($ttl_norm)) {
             //no TTL
             $result = $this->client->set($key_compat, $value);
@@ -169,7 +169,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function delete($key)
     {
-        $key_compat = $this->redisKeyCompat($key);
+        $key_compat = $this->redisNormalizeKey($key);
         $this->client->del(array($key_compat));
         return true;
     }
@@ -254,7 +254,9 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         if ($this->isAssoc($keys)) {
             throw new Exceptions\InvalidArgumentException("Keys must be an array!");
         }
-        $result = $this->client->del($keys);
+        $result = $this->client->del(
+            $this->redisNormalizeArrayValuesLikeKeys($keys)
+        );
         return (count($keys) == $result);
     }
 
@@ -276,8 +278,9 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function has($key)
     {
-        $key_compat = $this->redisKeyCompat($key);
-        $result = $this->client->exists($key_compat);
+        $result = $this->client->exists(
+            $this->redisNormalizeKey($key)
+        );
         return (1 === $result);
     }
 
@@ -297,7 +300,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * @return string A valid redis key.
      * @throws \Psr\SimpleCache\InvalidArgumentException in case the given string is invalid.
      */
-    private function redisKeyCompat($str)
+    private function redisNormalizeKey($str)
     {
         if (!is_string($str)) {
             throw new Exceptions\InvalidArgumentException(sprintf(
@@ -312,13 +315,48 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     }
 
     /**
+     * Normalize the keys of an array.
+     * ATTENTION: This function receives a reference and returns a reference!
+     * @param array $arr Referenced associative array to normalize.
+     * @return array Referenceable array with normalized keys.
+     * @throws \Psr\SimpleCache\InvalidArgumentException in case one of the keys is invalid.
+     */
+    private function &redisNormalizeArrayKeys(&$arr)
+    {
+        $result = array();
+        foreach($arr as $key => $value) {
+            $key_norm = $this->redisNormalizeKey($key);
+            $result[$key_norm] = $value;
+        }
+        unset($key, $value, $key_norm);
+        return $result;
+    }
+
+    /**
+     * Normalize the values of an array like they were keys.
+     * ATTENTION: This function receives a reference and returns a reference!
+     * @param array $arr Referenced array to normalize.
+     * @return array Referenceable array with normalized values.
+     * @throws \Psr\SimpleCache\InvalidArgumentException in case one of the values is invalid as a key.
+     */
+    private function &redisNormalizeArrayValuesLikeKeys(&$arr)
+    {
+        $result = array();
+        foreach($arr as $id => $key) {
+            $result[$id] = $this->redisNormalizeKey($key);
+        }
+        unset($id, $key);
+        return $result;
+    }
+
+    /**
      * Normalize TTL value.
      * @param int|\DateInterval|null $ttl The TTL to normalize.
      * @return null|int Integer in case the normalized TTL is greater than zero, null otherwise.
      * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException in case the TTL is neither integer,
      *                                                            nor \DateInterval, nor null.
      */
-    private function normalizeTtl($ttl)
+    private function redisNormalizeTtl($ttl)
     {
         if (is_null($ttl)) {
             return null;

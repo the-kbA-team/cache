@@ -1,6 +1,6 @@
 {
   "name": "kba-team/cache",
-  "description": "Simple cache using redis implementing PSR-16.",
+  "description": "Simple cache implementing PSR-16 connecting to Redis using Predis.",
   "license": "MIT",
   "type": "library",
   "support": {

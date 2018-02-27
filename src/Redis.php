@@ -200,18 +200,26 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function getMultiple($keys, $default = null)
     {
-        if ($this->isAssoc($keys)) {
-            throw new Exceptions\InvalidArgumentException("Keys must be an array!");
+        if (!$keys instanceof \Traversable && $this->isAssoc($keys)) {
+            throw new Exceptions\InvalidArgumentException(sprintf(
+                'Keys must be an array or an instance of Traversable, "%s" given!',
+                is_object($keys) ? get_class($keys) : gettype($keys)
+            ));
         }
         $result = array();
-        foreach ($this->client->mget($keys) as $id => $value) {
-            if(false === $value) {
-                $value = null;
+        if($keys instanceof \Traversable) {
+            foreach($keys as $key) {
+                $key_norm = $this->redisNormalizeKey($key);
+                $result[$key_norm] = $this->get($key, $default);
             }
-            if(is_null($value) && !is_null($default)) {
-                $value = $default;
+        } else {
+            $keys_norm = $this->redisNormalizeArrayValuesLikeKeys($keys);
+            foreach ($this->client->mget($keys_norm) as $id => $value) {
+                if (empty($value)) {
+                    $value = $default;
+                }
+                $result[$keys[$id]] = $value;
             }
-            $result[$keys[$id]] = $value;
         }
         return $result;
     }
@@ -237,7 +245,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     {
         if (!is_array($values) && !$values instanceof \Traversable) {
             throw new Exceptions\InvalidArgumentException(sprintf(
-                'Values must be an array or an Iterator, "%s" given.',
+                'Values must be an array or an instance of Traversable, "%s" given.',
                 is_object($values) ? get_class($values) : gettype($values)
             ));
         }
@@ -279,11 +287,15 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function deleteMultiple($keys)
     {
-        if ($this->isAssoc($keys)) {
-            throw new Exceptions\InvalidArgumentException("Keys must be an array!");
+        if (!$keys instanceof \Traversable && $this->isAssoc($keys)) {
+            throw new Exceptions\InvalidArgumentException(sprintf(
+                'Keys must be an array or an instance of Traversable, "%s" given!',
+                is_object($keys) ? get_class($keys) : gettype($keys)
+            ));
         }
+        $keys_norm = $this->redisNormalizeArrayValuesLikeKeys($keys);
         $result = $this->client->del(
-            $this->redisNormalizeArrayValuesLikeKeys($keys)
+            $this->redisNormalizeArrayValuesLikeKeys($keys_norm)
         );
         return (count($keys) == $result);
     }

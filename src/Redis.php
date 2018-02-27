@@ -327,7 +327,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             $ttl = (int) \DateTime::createFromFormat('U', 0)->add($ttl)->format('U');
         }
         if (is_int($ttl)) {
-            return 0 < $ttl ? $ttl : null;
+            return (0 < $ttl) ? $ttl : 0;
         }
         throw new Exceptions\InvalidArgumentException(sprintf(
             'Time-to-live must either be an integer, a DateInterval or null, "%s" given',
@@ -349,6 +349,6 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         if (array() === $arr) {
             return false;
         }
-        return array_keys($arr) !== range(0, count($arr) - 1);
+        return (array_keys($arr) !== range(0, count($arr) - 1));
     }
 }

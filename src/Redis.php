@@ -2,9 +2,6 @@
 
 namespace kbATeam\Cache;
 
-use Predis\Client;
-use Predis\ClientInterface;
-
 /**
  * Class kbATeam\Cache\Redis
  *
@@ -19,22 +16,22 @@ class Redis implements \Psr\SimpleCache\CacheInterface
 {
 
     /**
-     * @var \Predis\ClientInterface
+     * @var \Redis
      */
     protected $client;
 
     /**
      * Redis simple cache constructor.
-     * @param \Predis\ClientInterface $client The redis client to connect to handle the redis connection.
+     * @param \Redis $client The redis client to connect to handle the redis connection.
      */
-    public function __construct(ClientInterface $client)
+    public function __construct(\Redis $client)
     {
         $this->client = $client;
     }
 
     /**
      * Get the redis client application.
-     * @return \Predis\ClientInterface
+     * @return \Redis
      */
     public function getClient()
     {
@@ -54,34 +51,26 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     {
         //validate hostname/IP (throws exception in case it's not valid)
         static::isHostnameValid($hostname);
-        $config = array(
-            'scheme' => 'tcp',
-            'host' => $hostname,
-            'port' => $port
-        );
-        $options = static::buildClientOptions($database, $password);
-        return new self(new Client($config, $options));
-    }
-
-    /**
-     * Connect to a cluster of redis servers.
-     * @param array $hostnames The hostnames/IPs of the cluster.
-     * @param int $database The database ID to use on the redis server.
-     * @param string|null  $password Optional password to access the redis cluster. Default: null
-     * @return \kbATeam\Cache\Redis An instance of this class connecting to the given cluster.
-     * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException In case any of the parameters is invalid.
-     */
-    public static function cluster(array $hostnames, $database, $password = null)
-    {
-        $config = array();
-        //validate hostnames (throws exception in case they're not valid)
-        foreach ($hostnames as $hostname) {
-            static::isHostnameValid($hostname);
-            $config[] = sprintf("tcp://%s", $hostname);
+        //validate database id
+        if(!is_int($database) || 0 > $database) {
+            throw new Exceptions\InvalidArgumentException("Database must be a positive integer!");
         }
-        //build options
-        $options = static::buildClientOptions($database, $password, true);
-        return new self(new Client($config, $options));
+        //validate password
+        if(!is_null($password) && !is_string($password)) {
+            throw new Exceptions\InvalidArgumentException("Password must be a string!");
+        }
+        $client = new \Redis();
+        $client->pconnect($hostname, $port);
+        if(!is_null($password)) {
+            if(!$client->auth($password)){
+                throw new Exceptions\InvalidArgumentException("Password authentication failed!");
+            }
+        }
+        if(!$client->select($database)) {
+            throw new Exceptions\InvalidArgumentException(sprintf("Invalid database index %u!", $database));
+        }
+        $client->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_PHP);
+        return new self($client);
     }
 
     /**
@@ -111,42 +100,6 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     }
 
     /**
-     * Build options for Predis\Client.
-     * @param int $database The database ID to use on the redis server(s).
-     * @param string|null $password Optional password to access the redis server(s).
-     * @param bool $cluster Optional flag whether to set the cluster option or not.
-     * @return array Options array for Predis\Client.
-     * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException In case any of the parameters is invalid.
-     */
-    protected static function buildClientOptions($database, $password = null, $cluster = false)
-    {
-        //validate database being an integer
-        if (!is_integer($database) || $database < 1) {
-            throw new Exceptions\InvalidArgumentException("Database has to be an integer!");
-        }
-        $result = array(
-            'parameters' => array(
-                'database' => $database
-            )
-        );
-        //add password in case it's required
-        if (!empty($password)) {
-            $result['parameters']['password'] = $password;
-        }
-        //validate cluster parameter being a boolean
-        if (!is_bool($cluster)) {
-            // @codeCoverageIgnoreStart
-            throw new Exceptions\InvalidArgumentException("The cluster flag has to be a boolean!");
-            // @codeCoverageIgnoreEnd
-        }
-        //add option for cluster in case it's set
-        if (true === $cluster) {
-            $result['cluster'] = 'redis';
-        }
-        return $result;
-    }
-
-    /**
      * Fetches a value from the cache.
      *
      * @param string $key     The unique key of this item in the cache.
@@ -161,11 +114,9 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     public function get($key, $default = null)
     {
         $key_compat = $this->redisKeyCompat($key);
-        $result_ser = $this->client->get($key_compat);
-        if (empty($result_ser)) {
+        $result = $this->client->get($key_compat);
+        if (empty($result)) {
             $result = $default;
-        } else {
-            $result = unserialize($result_ser);
         }
         return $result;
     }
@@ -191,14 +142,16 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     public function set($key, $value, $ttl = null)
     {
         $key_compat = $this->redisKeyCompat($key);
-        $value_ser = serialize($value);
         $ttl_norm = $this->normalizeTtl($ttl);
         if (is_null($ttl_norm)) {
-            $response = $this->client->setnx($key_compat, $value_ser);
-            $result = (1 === $response);
+            //no TTL
+            $result = $this->client->set($key_compat, $value);
+        } elseif (0 === $ttl_norm) {
+            //ttl <= 0 means: delete!
+            $result = $this->client->del(array($key_compat));
         } else {
-            $response = $this->client->setex($key_compat, $ttl_norm, $value_ser);
-            $result = ('OK' == (string) $response);
+            //set ttl
+            $result = $this->client->setex($key_compat, $ttl_norm, $value);
         }
         return $result;
     }
@@ -217,12 +170,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     public function delete($key)
     {
         $key_compat = $this->redisKeyCompat($key);
-        if($this->has($key)) {
-            $result = $this->client->del($key_compat);
-        } else {
-            $result = 1;
-        }
-        return (1 == $result);
+        $this->client->del(array($key_compat));
+        return true;
     }
 
     /**
@@ -232,8 +181,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function clear()
     {
-        $this->client->flushdb();
-        return true; //never fails
+        return $this->client->flushdb(); //never fails
     }
 
     /**
@@ -252,12 +200,12 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function getMultiple($keys, $default = null)
     {
-        if (!is_array($keys)) {
+        if ($this->isAssoc($keys)) {
             throw new Exceptions\InvalidArgumentException("Keys must be an array!");
         }
         $result = array();
-        foreach ($keys as $key) {
-            $result[$key] = $this->get($key, $default);
+        foreach ($this->client->mget($keys) as $id => $value) {
+            $result[$keys[$id]] = $value;
         }
         return $result;
     }
@@ -286,22 +234,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
                 "Values must be an associative array of key=>value!"
             );
         }
-        try {
-            foreach ($values as $key => $value) {
-                /* Problem: PHP transforms array('0' => 'string') to array(0 => 'string').
-                 * fix: in case of an array, convert int to string.
-                 */
-                if (is_int($key)) {
-                    $key = (string)$key;
-                }
-                if (!$this->set($key, $value, $ttl)) {
-                    throw new Exceptions\CacheException();
-                }
-            }
-        } catch (Exceptions\CacheException $e) {
-            return false;
-        }
-        return true;
+        return $this->client->mset($values);
     }
 
     /**
@@ -318,19 +251,11 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function deleteMultiple($keys)
     {
-        if (!is_array($keys)) {
+        if ($this->isAssoc($keys)) {
             throw new Exceptions\InvalidArgumentException("Keys must be an array!");
         }
-        try {
-            foreach ($keys as $key) {
-                if (!$this->delete($key)) {
-                    throw new Exceptions\CacheException();
-                }
-            }
-        } catch (Exceptions\CacheException $e) {
-            return false;
-        }
-        return true;
+        $result = $this->client->del($keys);
+        return (count($keys) == $result);
     }
 
     /**

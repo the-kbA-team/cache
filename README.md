@@ -5,7 +5,7 @@
 [![Maintainability][maintainability-badge]][maintainability]
 [![Test Coverage][coverage-badge]][coverage]
 
-Simple cache implementing [PSR-16: Common Interface for Caching Libraries][psr16] connecting to [Redis][redis] using [Predis][predis].
+Simple cache implementing [PSR-16: Common Interface for Caching Libraries][psr16] connecting to [Redis][redis] using [PhpRedis][phpredis].
 
 ## Why???
 
@@ -29,20 +29,6 @@ We use [Semver][semver].
 <?php
 //create object to access the redis server
 $redis = \kbATeam\Cache\Redis::tcp('redis-server', 10);
-//store value in redis server
-if (!$redis->has('hello')) {
-    $redis->set('hello', 'Hello World!');
-}
-//retrieve value from redis server
-echo $redis->get('hello');
-```
-
-### Redis cluster via TCP
-
-```php
-<?php
-//create object to access the redis server
-$redis = \kbATeam\Cache\Redis::cluster(['redis-server1', 'redis-server2'], 10);
 //store value in redis server
 if (!$redis->has('hello')) {
     $redis->set('hello', 'Hello World!');

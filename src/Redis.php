@@ -296,13 +296,13 @@ class Redis implements \Psr\SimpleCache\CacheInterface
 
     /**
      * Validate and encode any given string to a valid redis key as PSR-16 requests.
-     * @param string $str The string to validate and encode into a valid redis key.
+     * @param string|int $str The string to validate and encode into a valid redis key.
      * @return string A valid redis key.
      * @throws \Psr\SimpleCache\InvalidArgumentException in case the given string is invalid.
      */
     private function redisNormalizeKey($str)
     {
-        if (!is_string($str)) {
+        if (!is_string($str) && !is_int($str)) {
             throw new Exceptions\InvalidArgumentException(sprintf(
                 'Expected key to be a string, "%s" given!',
                 is_object($str) ? get_class($str) : gettype($str)

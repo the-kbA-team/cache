@@ -205,7 +205,13 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         }
         $result = array();
         foreach ($this->client->mget($keys) as $id => $value) {
-            $result[$keys[$id]] = (false === $value) ? null : $value;
+            if(false === $value) {
+                $value = null;
+            }
+            if(is_null($value) && !is_null($default)) {
+                $value = $default;
+            }
+            $result[$keys[$id]] = $value;
         }
         return $result;
     }

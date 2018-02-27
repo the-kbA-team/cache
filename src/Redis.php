@@ -113,9 +113,9 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function get($key, $default = null)
     {
-        $key_compat = $this->redisNormalizeKey($key);
         $result = $this->client->get($key_compat);
         if (empty($result)) {
+        $key_compat = $this->redisValidateKey($key);
             $result = $default;
         }
         return $result;
@@ -141,7 +141,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function set($key, $value, $ttl = null)
     {
-        $key_compat = $this->redisNormalizeKey($key);
+        $key_compat = $this->redisValidateKey($key);
         $ttl_norm = $this->redisNormalizeTtl($ttl);
         if (is_null($ttl_norm)) {
             //no TTL
@@ -169,7 +169,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function delete($key)
     {
-        $key_compat = $this->redisNormalizeKey($key);
+        $key_compat = $this->redisValidateKey($key);
         $this->client->del(array($key_compat));
         return true;
     }
@@ -209,7 +209,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         $result = array();
         if($keys instanceof \Traversable) {
             foreach($keys as $key) {
-                $key_norm = $this->redisNormalizeKey($key);
+                $key_norm = $this->redisValidateKey($key);
                 $result[$key_norm] = $this->get($key, $default);
             }
         } else {
@@ -263,8 +263,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         } else {
             $result = true;
             foreach ($values as $key => $value) {
-                $key_norm = $this->redisNormalizeKey($key);
                 if(!$this->client->setex($key_norm, $ttl_norm, $value)) {
+                $key_norm = $this->redisValidateKey($key);
                     $result = false;
                     break;
                 }
@@ -319,39 +319,31 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     public function has($key)
     {
         $result = $this->client->exists(
-            $this->redisNormalizeKey($key)
+            $this->redisValidateKey($key)
         );
         return (1 === $result);
     }
 
     /**
-     * Encode the string into a sting redis will accept as key.
-     * @param string $str The string to encode into a valid redis key string.
-     * @return string A valid redis key string.
+     * Validate and return a key for redis.
+     * @param $str
+     * @return mixed
+     * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException
      */
-    private function encodeRedisKey($str)
+    private function redisValidateKey($str)
     {
-        return preg_replace("~[^a-zA-Z0-9_]~", "_", $str);
-    }
-
-    /**
-     * Validate and encode any given string to a valid redis key as PSR-16 requests.
-     * @param string|int $str The string to validate and encode into a valid redis key.
-     * @return string A valid redis key.
-     * @throws \Psr\SimpleCache\InvalidArgumentException in case the given string is invalid.
-     */
-    private function redisNormalizeKey($str)
-    {
-        if (!is_string($str) && !is_int($str)) {
+        if (!is_string($str)) {
             throw new Exceptions\InvalidArgumentException(sprintf(
                 'Expected key to be a string, "%s" given!',
                 is_object($str) ? get_class($str) : gettype($str)
             ));
         }
-        if (mb_strlen($str) < 1) {
-            throw new Exceptions\InvalidArgumentException("Given key is empty!");
+        if(!preg_match('~^[a-zA-Z0-9_.]+$~', $str, $match)) {
+            throw new Exceptions\InvalidArgumentException(
+                'Key must consist of alphanumeric values, underlines and dots!'
+            );
         }
-        return $this->encodeRedisKey($str);
+        return $match[0];
     }
 
     /**
@@ -365,8 +357,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     {
         $result = array();
         foreach($arr as $key => $value) {
-            $key_norm = $this->redisNormalizeKey($key);
             $result[$key_norm] = $value;
+            $key_norm = $this->redisValidateKey($key);
         }
         unset($key, $value, $key_norm);
         return $result;
@@ -382,8 +374,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     private function &redisNormalizeArrayValuesLikeKeys(&$arr)
     {
         $result = array();
-        foreach($arr as $id => $key) {
-            $result[$id] = $this->redisNormalizeKey($key);
+        foreach($arr as $key) {
+            $result[] = $this->redisValidateKey($key);
         }
         unset($id, $key);
         return $result;

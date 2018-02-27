@@ -229,12 +229,34 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function setMultiple($values, $ttl = null)
     {
-        if (!$this->isAssoc($values)) {
-            throw new Exceptions\InvalidArgumentException(
-                "Values must be an associative array of key=>value!"
-            );
+        if (!is_array($values) && !$values instanceof \Traversable) {
+            throw new Exceptions\InvalidArgumentException(sprintf(
+                'Values must be an array or an Iterator, "%s" given.',
+                is_object($values) ? get_class($values) : gettype($values)
+            ));
         }
-        return $this->client->mset($values);
+        $ttl_norm = $this->redisNormalizeTtl($ttl);
+        if(is_null($ttl_norm)) {
+            //without ttl use redis mset() but normalize keys before
+            $result = $this->client->mset(
+                $this->redisNormalizeArrayKeys($values)
+            );
+        } elseif (0 === $ttl_norm) {
+            //ttl <= 0 means delete the normalized keys from the array
+            $result = $this->client->del(
+                $this->redisNormalizeArrayValuesLikeKeys(array_keys($values))
+            );
+        } else {
+            $result = true;
+            foreach ($values as $key => $value) {
+                $key_norm = $this->redisNormalizeKey($key);
+                if(!$this->client->setex($key_norm, $ttl_norm, $value)) {
+                    $result = false;
+                    break;
+                }
+            }
+        }
+        return $result;
     }
 
     /**

@@ -52,21 +52,21 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         //validate hostname/IP (throws exception in case it's not valid)
         static::isHostnameValid($hostname);
         //validate database id
-        if(!is_int($database) || 0 > $database) {
+        if (!is_int($database) || 0 > $database) {
             throw new Exceptions\InvalidArgumentException("Database must be a positive integer!");
         }
         //validate password
-        if(!is_null($password) && !is_string($password)) {
+        if (!is_null($password) && !is_string($password)) {
             throw new Exceptions\InvalidArgumentException("Password must be a string!");
         }
         $client = new \Redis();
         $client->pconnect($hostname, $port);
-        if(!is_null($password)) {
-            if(!$client->auth($password)){
+        if (!is_null($password)) {
+            if (!$client->auth($password)) {
                 throw new Exceptions\InvalidArgumentException("Password authentication failed!");
             }
         }
-        if(!$client->select($database)) {
+        if (!$client->select($database)) {
             throw new Exceptions\InvalidArgumentException(sprintf("Invalid database index %u!", $database));
         }
         $client->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
@@ -209,8 +209,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             ));
         }
         $result = array();
-        if($keys instanceof \Traversable) {
-            foreach($keys as $key) {
+        if ($keys instanceof \Traversable) {
+            foreach ($keys as $key) {
                 $key_norm = $this->redisValidateKey($key);
                 $result[$key_norm] = $this->get($key, $default);
             }
@@ -254,7 +254,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             ));
         }
         $ttl_norm = $this->redisNormalizeTtl($ttl);
-        if(is_null($ttl_norm)) {
+        if (is_null($ttl_norm)) {
             //without ttl use redis mset() but normalize keys before
             $result = $this->client->mset(
                 $this->redisNormalizeArrayKeysSerializeValue($values)
@@ -268,7 +268,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             $result = true;
             foreach ($values as $key => $value) {
                 $key_norm = $this->redisValidateKey($key);
-                if(!$this->client->setex($key_norm, $ttl_norm, serialize($value))) {
+                if (!$this->client->setex($key_norm, $ttl_norm, serialize($value))) {
                     $result = false;
                     break;
                 }
@@ -345,7 +345,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
                 is_object($str) ? get_class($str) : gettype($str)
             ));
         }
-        if(!preg_match('~^[a-zA-Z0-9_.]+$~', $str, $match)) {
+        if (!preg_match('~^[a-zA-Z0-9_.]+$~', $str, $match)) {
             throw new Exceptions\InvalidArgumentException(
                 'Key must consist of alphanumeric values, underlines and dots!'
             );
@@ -363,7 +363,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     private function redisNormalizeArrayKeysSerializeValue($arr)
     {
         $result = array();
-        foreach($arr as $key => $value) {
+        foreach ($arr as $key => $value) {
             $key_norm = $this->redisValidateKey($key);
             $result[$key_norm] = serialize($value);
         }
@@ -380,7 +380,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     private function redisNormalizeArrayValuesLikeKeys($arr)
     {
         $result = array();
-        foreach($arr as $key) {
+        foreach ($arr as $key) {
             $result[] = $this->redisValidateKey($key);
         }
         unset($id, $key);

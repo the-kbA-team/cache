@@ -287,9 +287,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         if (!static::isValidKeysArray($keys)) {
             throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
         }
-        $keysNormalized = $this->redisNormalizeArrayValuesLikeKeys($keys);
         $this->client->del(
-            $this->redisNormalizeArrayValuesLikeKeys($keysNormalized)
+            $this->redisNormalizeArrayValuesLikeKeys($keys)
         );
         return true;
     }

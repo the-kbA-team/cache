@@ -18,6 +18,37 @@ class RedisAdditionalTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
+     * Data provider for invalid hostnames.
+     *
+     * @return array
+     */
+    public static function invalidHostNames()
+    {
+        return [
+            [''],
+            ['{abc'],
+            ['abc/def'],
+            ['invalid..hostname'],
+            ['this-sure-looks-valid-but-is-not-because-it-is-far-too-long-for-a-label.com'],
+        ];
+    }
+
+    /**
+     * Data provider for valid hostnames.
+     *
+     * @return array
+     */
+    public static function validHostNames()
+    {
+        return [
+            ['127.0.0.1'],
+            ['192.168.100.254'],
+            ['redis-server'],
+            ['redis.example.com'],
+        ];
+    }
+
+    /**
      * The object of the class being tested, has to be created here.
      * The connection details have to be taken from the environment!
      * @return \kbATeam\Cache\Redis|\Psr\SimpleCache\CacheInterface
@@ -55,6 +86,22 @@ class RedisAdditionalTest extends \PHPUnit_Framework_TestCase
             $password,
             $tcpPort
         );
+    }
+
+    /**
+     * @dataProvider invalidHostNames
+     */
+    public function testHostnameValidationWithInvalidHosts($hostname)
+    {
+        $this->assertFalse(Redis::isValidHostname($hostname));
+    }
+
+    /**
+     * @dataProvider validHostNames
+     */
+    public function testHostnameValidationWithValidHosts($hostname)
+    {
+        $this->assertTrue(Redis::isValidHostname($hostname));
     }
 
     public function testGetClient()

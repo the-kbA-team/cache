@@ -212,13 +212,13 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             }
         } else {
             $keys_norm = $this->redisNormalizeArrayValuesLikeKeys($keys);
-            foreach ($this->client->mget($keys_norm) as $id => $value_ser) {
+            foreach ($this->client->mget($keys_norm) as $pos => $value_ser) {
                 if (empty($value_ser)) {
                     $value = $default;
                 } else {
                     $value = unserialize($value_ser);
                 }
-                $result[$keys[$id]] = $value;
+                $result[$keys[$pos]] = $value;
             }
         }
         return $result;

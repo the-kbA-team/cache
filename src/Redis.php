@@ -373,7 +373,6 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         foreach ($arr as $key) {
             $result[] = $this->redisValidateKey($key);
         }
-        unset($id, $key);
         return $result;
     }
 

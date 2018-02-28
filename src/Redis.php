@@ -201,7 +201,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function getMultiple($keys, $default = null)
     {
-        if (!$this->isValidKeysArray($keys)) {
+        if (!static::isValidKeysArray($keys)) {
             throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
         }
         $result = array();
@@ -286,7 +286,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function deleteMultiple($keys)
     {
-        if (!$this->isValidKeysArray($keys)) {
+        if (!static::isValidKeysArray($keys)) {
             throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
         }
         $keys_norm = $this->redisNormalizeArrayValuesLikeKeys($keys);
@@ -402,7 +402,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * @return bool is associative?
      * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException in case not array was given.
      */
-    private function isValidKeysArray($keys)
+    public static function isValidKeysArray($keys)
     {
         //In case it's a traversable object, we're already done.
         if ($keys instanceof \Traversable) {

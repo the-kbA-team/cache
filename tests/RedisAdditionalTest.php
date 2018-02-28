@@ -128,7 +128,7 @@ class RedisAdditionalTest extends \PHPUnit_Framework_TestCase
      */
     public function testHostnameValidationWithInvalidHosts($hostname)
     {
-        $this->assertFalse(Redis::isValidHostname($hostname));
+        $this->assertFalse(Redis::isValidHost($hostname));
     }
 
     /**
@@ -136,7 +136,7 @@ class RedisAdditionalTest extends \PHPUnit_Framework_TestCase
      */
     public function testHostnameValidationWithValidHosts($hostname)
     {
-        $this->assertTrue(Redis::isValidHostname($hostname));
+        $this->assertTrue(Redis::isValidHost($hostname));
     }
 
     public function testGetClient()

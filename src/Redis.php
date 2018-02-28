@@ -202,10 +202,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function getMultiple($keys, $default = null)
     {
-        if (!$keys instanceof \Traversable) {
-            if ($this->isKeysAssocArray($keys)) {
-                throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
-            }
+        if (!$keys instanceof \Traversable && $this->isKeysAssocArray($keys)) {
+            throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
         }
         $result = array();
         if ($keys instanceof \Traversable) {
@@ -287,10 +285,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function deleteMultiple($keys)
     {
-        if (!$keys instanceof \Traversable) {
-            if ($this->isKeysAssocArray($keys)) {
-                throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
-            }
+        if (!$keys instanceof \Traversable && $this->isKeysAssocArray($keys)) {
+            throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
         }
         $keys_norm = $this->redisNormalizeArrayValuesLikeKeys($keys);
         $this->client->del(

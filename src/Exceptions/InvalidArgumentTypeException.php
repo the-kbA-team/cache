@@ -18,13 +18,13 @@ class InvalidArgumentTypeException extends InvalidArgumentException
 {
     /**
      * InvalidParameterException constructor.
-     * @param string          $arg_name The name of the invalid argument.
+     * @param string          $argName  The name of the invalid argument.
      * @param string          $expected A description of the expected value or type.
-     * @param mixed           $given The actual object/variable given as argument.
+     * @param mixed           $given    The actual object/variable given as argument.
      * @param \Throwable|null $previous Any previously raised error.
      */
     public function __construct(
-        $arg_name,
+        $argName,
         $expected,
         &$given,
         \Throwable $previous = null
@@ -38,7 +38,7 @@ class InvalidArgumentTypeException extends InvalidArgumentException
         //compile message from parameters
         $message = sprintf(
             "%s must be %s, %s given!",
-            $arg_name,
+            $argName,
             $expected,
             $type
         );

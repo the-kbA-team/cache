@@ -44,18 +44,18 @@ class Redis implements \Psr\SimpleCache\CacheInterface
 
     /**
      * Return a redis cache object, that will connect via tcp to a redis server.
-     * @param string $hostname Either hostname or IP address of the redis server.
-     * @param int $database The database ID to use on the redis server.
+     * @param string      $host     Either hostname or IP address of the redis server.
+     * @param int         $database The database ID to use on the redis server.
      * @param string|null $password Optional password to access the redis server. Default: null
-     * @param int $port Optional TCP port of the server. Default: 6379
+     * @param int         $port     Optional TCP port of the server. Default: 6379
      * @return \kbATeam\Cache\Redis An instance of this class connecting to the given server.
      * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException In case any of the parameters is invalid.
      */
-    public static function tcp($hostname, $database, $password = null, $port = 6379)
+    public static function tcp($host, $database, $password = null, $port = 6379)
     {
         //validate hostname/IP (throws exception in case it's not valid)
-        if (!static::isValidHostname($hostname)) {
-            throw new InvalidArgumentException(sprintf("Invalid hostname/IP given: '%s'", $hostname));
+        if (!static::isValidHost($host)) {
+            throw new InvalidArgumentException(sprintf("Invalid hostname/IP given: '%s'", $host));
         }
         //validate database id
         if (!is_int($database) || 0 > $database) {
@@ -66,7 +66,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             throw new InvalidArgumentTypeException('password', 'a string', $password);
         }
         $client = new \Redis();
-        $client->pconnect($hostname, $port);
+        $client->pconnect($host, $port);
         if (!is_null($password) && !$client->auth($password)) {
             throw new InvalidArgumentException("Password authentication failed!");
         }
@@ -78,21 +78,21 @@ class Redis implements \Psr\SimpleCache\CacheInterface
 
     /**
      * Validates the given hostname and throws an exception in case it's not.
-     * @param string $hostname The hostname to validate.
+     * @param string $host The hostname to validate.
      * @return boolean Is the given hostname valid?
      */
-    public static function isValidHostname($hostname)
+    public static function isValidHost($host)
     {
         return (
             (
                 //valid chars check
-                preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $hostname)
+                preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $host)
                 //overall length check
-                && preg_match("/^.{1,253}$/", $hostname)
+                && preg_match("/^.{1,253}$/", $host)
                 //length of each label
-                && preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $hostname)
+                && preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $host)
             )
-            || filter_var($hostname, FILTER_VALIDATE_IP)
+            || filter_var($host, FILTER_VALIDATE_IP)
         );
     }
 

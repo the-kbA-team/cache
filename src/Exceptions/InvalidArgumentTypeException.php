@@ -29,19 +29,26 @@ class InvalidArgumentTypeException extends InvalidArgumentException
         &$given,
         \Throwable $previous = null
     ) {
-        //determine type of given argument
-        if (is_object($given)) {
-            $type = get_class($given);
-        } else {
-            $type = gettype($given);
-        }
         //compile message from parameters
         $message = sprintf(
             "%s must be %s, %s given!",
             $argName,
             $expected,
-            $type
+            $this->getArgType($given)
         );
         parent::__construct($message, 0, $previous);
+    }
+
+    /**
+     * Get the type of the given argument.
+     * @param mixed $given Referenced argument to get the type of.
+     * @return string The determined type of the given argument.
+     */
+    public function getArgType(&$given)
+    {
+        if (is_object($given)) {
+            return get_class($given);
+        }
+        return gettype($given);
     }
 }

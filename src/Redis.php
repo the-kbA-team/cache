@@ -202,22 +202,63 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         if (!static::isValidKeysArray($keys)) {
             throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
         }
-        $result = array();
+
         if ($keys instanceof \Traversable) {
-            foreach ($keys as $key) {
-                $keyNormalized = $this->redisValidateKey($key);
-                $result[$keyNormalized] = $this->get($key, $default);
+            return $this->getMultipleFromTraversable($keys, $default);
+        }
+
+        return $this->getMultipleFromArray($keys, $default);
+    }
+
+    /**
+     * Obtains multiple cache items by their unique keys.
+     *
+     * @param array $keys    A list of keys that can obtained in a single
+     *                          operation.
+     * @param mixed    $default Default value to return for keys that do not exist.
+     *
+     * @return iterable A list of key => value pairs. Cache keys that do not exist
+     *                  or are stale will have $default as value.
+     *
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     *   MUST be thrown if $keys is neither an array nor a Traversable,
+     *   or if any of the $keys are not a legal value.
+     */
+    private function getMultipleFromArray($keys, $default)
+    {
+        $result = array();
+        $keysNormalized = $this->redisNormalizeArrayValuesLikeKeys($keys);
+        foreach ($this->client->mget($keysNormalized) as $pos => $valueSerialized) {
+            if (empty($valueSerialized)) {
+                $value = $default;
+            } else {
+                $value = unserialize($valueSerialized);
             }
-        } else {
-            $keysNormalized = $this->redisNormalizeArrayValuesLikeKeys($keys);
-            foreach ($this->client->mget($keysNormalized) as $pos => $valueSerialized) {
-                if (empty($valueSerialized)) {
-                    $value = $default;
-                } else {
-                    $value = unserialize($valueSerialized);
-                }
-                $result[$keys[$pos]] = $value;
-            }
+            $result[$keys[$pos]] = $value;
+        }
+        return $result;
+    }
+
+    /**
+     * Obtains multiple cache items by their unique keys.
+     *
+     * @param iterable $keys    A list of keys that can obtained in a single
+     *                          operation.
+     * @param mixed    $default Default value to return for keys that do not exist.
+     *
+     * @return iterable A list of key => value pairs. Cache keys that do not exist
+     *                  or are stale will have $default as value.
+     *
+     * @throws \Psr\SimpleCache\InvalidArgumentException
+     *   MUST be thrown if $keys is neither an array nor a Traversable,
+     *   or if any of the $keys are not a legal value.
+     */
+    private function getMultipleFromTraversable($keys, $default)
+    {
+        $result = array();
+        foreach ($keys as $key) {
+            $keyNormalized = $this->redisValidateKey($key);
+            $result[$keyNormalized] = $this->get($key, $default);
         }
         return $result;
     }

@@ -366,6 +366,14 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     private function redisValidateKey($str)
     {
+        /**
+         * In case of ['0' => 'value0'] the string '0' is interpreted as
+         * integer 0, which in turn would lead to a fail of
+         * SimpleCacheTest::testSetMultipleWithIntegerArrayKey() line 225.
+         *
+         * This cast from int to string is supposed to be a temporary solution.
+         * See: https://github.com/php-cache/integration-tests/issues/91
+         */
         if (is_int($str)) {
             $str = (string)$str;
         }

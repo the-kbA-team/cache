@@ -57,8 +57,12 @@ class RedisIntegrationTest extends \Cache\IntegrationTests\SimpleCacheTest
     /**
      * Data provider for invalid keys.
      *
-     * Integers are not invalid keys! Therefore the pos. #4 of the parent class containing (int)2 is removed from the
-     * list of invalid keys.
+     * Remove the pos. #4 of the parent class containing (int)2 from the list
+     * of invalid keys because Redis::redisValidateKey() casts integers to
+     * strings.
+     *
+     * This is supposed to be a temporary solution.
+     * See https://github.com/php-cache/integration-tests/issues/91
      *
      * @return array parent array except for pos. #4 containing valid key (int)2.
      */

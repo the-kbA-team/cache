@@ -9,7 +9,7 @@ Simple cache implementing [PSR-16: Common Interface for Caching Libraries][psr16
 
 ## Why???
 
-We are aware of the [PHP-Cache Project][phpcache] with all sorts of adapters- even for [PhpRedis][phpredis] **and** [Predis][predis]. When looking closely, all the Redis adapters implement PSR-6, not PSR-16. Furthermore, all the serious PSR-16 solutions we found, implement multiple storage backends but hardly ever Redis.
+We are aware of the [PHP-Cache Project][phpcache] with all sorts of adapters- even for [PhpRedis][phpredis] **and** [Predis][predis].
 
 We were in need of a _simple cache solution just for Redis_ without all the bells and whistles of PSR-6 and without all the abstraction layers necessary to implement multiple storage backends.
 

@@ -265,7 +265,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
                     // @codeCoverageIgnoreStart
                     $result = false;
                     break;
-                    // @codeCoverageIgnoreStart
+                    // @codeCoverageIgnoreEnd
                 }
             }
         }

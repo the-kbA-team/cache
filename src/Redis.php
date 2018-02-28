@@ -2,6 +2,9 @@
 
 namespace kbATeam\Cache;
 
+use kbATeam\Cache\Exceptions\InvalidArgumentException;
+use kbATeam\Cache\Exceptions\InvalidArgumentTypeException;
+
 /**
  * Class kbATeam\Cache\Redis
  *
@@ -54,21 +57,21 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         static::isHostnameValid($hostname);
         //validate database id
         if (!is_int($database) || 0 > $database) {
-            throw new Exceptions\InvalidArgumentTypeException('database', 'integer >= 0', $database);
+            throw new InvalidArgumentTypeException('database', 'integer >= 0', $database);
         }
         //validate password
         if (!is_null($password) && !is_string($password)) {
-            throw new Exceptions\InvalidArgumentTypeException('password', 'a string', $password);
+            throw new InvalidArgumentTypeException('password', 'a string', $password);
         }
         $client = new \Redis();
         $client->pconnect($hostname, $port);
         if (!is_null($password)) {
             if (!$client->auth($password)) {
-                throw new Exceptions\InvalidArgumentException("Password authentication failed!");
+                throw new InvalidArgumentException("Password authentication failed!");
             }
         }
         if (!$client->select($database)) {
-            throw new Exceptions\InvalidArgumentException(sprintf("Invalid database index %u!", $database));
+            throw new InvalidArgumentException(sprintf("Invalid database index %u!", $database));
         }
         return new self($client);
     }
@@ -91,10 +94,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             )
             && !filter_var($hostname, FILTER_VALIDATE_IP)
         ) {
-            throw new Exceptions\InvalidArgumentException(sprintf(
-                "Invalid hostname/IP given: '%s'",
-                $hostname
-            ));
+            throw new InvalidArgumentException(sprintf("Invalid hostname/IP given: '%s'", $hostname));
         }
         return true;
     }
@@ -203,8 +203,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     public function getMultiple($keys, $default = null)
     {
         if (!$keys instanceof \Traversable) {
-            if($this->isKeysAssocArray($keys)) {
-                throw new Exceptions\InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
+            if ($this->isKeysAssocArray($keys)) {
+                throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
             }
         }
         $result = array();
@@ -246,14 +246,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function setMultiple($values, $ttl = null)
     {
-        if (!is_array($values)) {
-            if(!$values instanceof \Traversable) {
-                throw new Exceptions\InvalidArgumentTypeException(
-                    'values',
-                    'an array or an instance of \Traversable',
-                    $values
-                );
-            }
+        if (!is_array($values) && !$values instanceof \Traversable) {
+            throw new InvalidArgumentTypeException('values', 'an array or an instance of \Traversable', $values);
         }
         $ttl_norm = $this->redisNormalizeTtl($ttl);
         if (is_null($ttl_norm)) {
@@ -294,8 +288,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     public function deleteMultiple($keys)
     {
         if (!$keys instanceof \Traversable) {
-            if($this->isKeysAssocArray($keys)) {
-                throw new Exceptions\InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
+            if ($this->isKeysAssocArray($keys)) {
+                throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
             }
         }
         $keys_norm = $this->redisNormalizeArrayValuesLikeKeys($keys);
@@ -341,10 +335,10 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             $str = (string)$str;
         }
         if (!is_string($str)) {
-            throw new Exceptions\InvalidArgumentTypeException('key', 'a string', $str);
+            throw new InvalidArgumentTypeException('key', 'a string', $str);
         }
         if (!preg_match('~^[a-zA-Z0-9_.]+$~', $str, $match)) {
-            throw new Exceptions\InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Key must consist of alphanumeric values, underlines and dots!'
             );
         }
@@ -403,7 +397,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         if (is_int($ttl)) {
             return (0 < $ttl) ? $ttl : 0;
         }
-        throw new Exceptions\InvalidArgumentTypeException('TTL', 'an integer, a \DateInterval or null', $str);
+        throw new InvalidArgumentTypeException('TTL', 'an integer, a \DateInterval or null', $str);
     }
 
     /**
@@ -416,7 +410,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     {
         //validate whether given argument is an array.
         if (!is_array($arr)) {
-            throw new Exceptions\InvalidArgumentTypeException('keys', 'an array', $arr);
+            throw new InvalidArgumentTypeException('keys', 'an array', $arr);
         }
         //an empty array is no associative array!
         if (array() === $arr) {

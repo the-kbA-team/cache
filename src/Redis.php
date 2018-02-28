@@ -411,12 +411,19 @@ class Redis implements \Psr\SimpleCache\CacheInterface
 
         //validate whether given argument is an array.
         if (!is_array($keys)) {
-            throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
-        }
-        //an empty array is no associative array!
-        if (array() === $keys) {
             return false;
         }
-        return (array_keys($keys) !== range(0, count($keys) - 1));
+
+        //an empty array is valid!
+        if (array() === $keys) {
+            return true;
+        }
+
+        //associative arrays are not valid
+        if (array_keys($keys) !== range(0, count($keys) - 1)) {
+            return false;
+        }
+
+        return true;
     }
 }

@@ -54,11 +54,11 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         static::isHostnameValid($hostname);
         //validate database id
         if (!is_int($database) || 0 > $database) {
-            throw new Exceptions\InvalidArgumentException("Database must be a positive integer!");
+            throw new Exceptions\InvalidArgumentTypeException('database', 'integer >= 0', $database);
         }
         //validate password
         if (!is_null($password) && !is_string($password)) {
-            throw new Exceptions\InvalidArgumentException("Password must be a string!");
+            throw new Exceptions\InvalidArgumentTypeException('password', 'a string', $password);
         }
         $client = new \Redis();
         $client->pconnect($hostname, $port);
@@ -202,11 +202,10 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function getMultiple($keys, $default = null)
     {
-        if (!$keys instanceof \Traversable && $this->isAssoc($keys)) {
-            throw new Exceptions\InvalidArgumentException(sprintf(
-                'Keys must be an array or an instance of Traversable, "%s" given!',
-                is_object($keys) ? get_class($keys) : gettype($keys)
-            ));
+        if (!$keys instanceof \Traversable) {
+            if($this->isKeysAssocArray($keys)) {
+                throw new Exceptions\InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
+            }
         }
         $result = array();
         if ($keys instanceof \Traversable) {
@@ -247,11 +246,14 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function setMultiple($values, $ttl = null)
     {
-        if (!is_array($values) && !$values instanceof \Traversable) {
-            throw new Exceptions\InvalidArgumentException(sprintf(
-                'Values must be an array or an instance of Traversable, "%s" given.',
-                is_object($values) ? get_class($values) : gettype($values)
-            ));
+        if (!is_array($values)) {
+            if(!$values instanceof \Traversable) {
+                throw new Exceptions\InvalidArgumentTypeException(
+                    'values',
+                    'an array or an instance of \Traversable',
+                    $values
+                );
+            }
         }
         $ttl_norm = $this->redisNormalizeTtl($ttl);
         if (is_null($ttl_norm)) {
@@ -291,11 +293,10 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function deleteMultiple($keys)
     {
-        if (!$keys instanceof \Traversable && $this->isAssoc($keys)) {
-            throw new Exceptions\InvalidArgumentException(sprintf(
-                'Keys must be an array or an instance of Traversable, "%s" given!',
-                is_object($keys) ? get_class($keys) : gettype($keys)
-            ));
+        if (!$keys instanceof \Traversable) {
+            if($this->isKeysAssocArray($keys)) {
+                throw new Exceptions\InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
+            }
         }
         $keys_norm = $this->redisNormalizeArrayValuesLikeKeys($keys);
         $this->client->del(
@@ -340,10 +341,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             $str = (string)$str;
         }
         if (!is_string($str)) {
-            throw new Exceptions\InvalidArgumentException(sprintf(
-                'Expected key to be a string, "%s" given!',
-                is_object($str) ? get_class($str) : gettype($str)
-            ));
+            throw new Exceptions\InvalidArgumentTypeException('key', 'a string', $str);
         }
         if (!preg_match('~^[a-zA-Z0-9_.]+$~', $str, $match)) {
             throw new Exceptions\InvalidArgumentException(
@@ -405,10 +403,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         if (is_int($ttl)) {
             return (0 < $ttl) ? $ttl : 0;
         }
-        throw new Exceptions\InvalidArgumentException(sprintf(
-            'Time-to-live must either be an integer, a DateInterval or null, "%s" given',
-            is_object($ttl) ? get_class($ttl) : gettype($ttl)
-        ));
+        throw new Exceptions\InvalidArgumentTypeException('TTL', 'an integer, a \DateInterval or null', $str);
     }
 
     /**
@@ -417,11 +412,11 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * @return bool is associative?
      * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException in case not array was given.
      */
-    private function isAssoc($arr)
+    private function isKeysAssocArray($arr)
     {
         //validate whether given argument is an array.
         if (!is_array($arr)) {
-            throw new Exceptions\InvalidArgumentException("Must be an array!");
+            throw new Exceptions\InvalidArgumentTypeException('keys', 'an array', $arr);
         }
         //an empty array is no associative array!
         if (array() === $arr) {

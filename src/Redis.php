@@ -202,7 +202,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function getMultiple($keys, $default = null)
     {
-        if (!$keys instanceof \Traversable && $this->isKeysAssocArray($keys)) {
+        if (!$this->isValidKeysArray($keys)) {
             throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
         }
         $result = array();
@@ -287,7 +287,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function deleteMultiple($keys)
     {
-        if (!$keys instanceof \Traversable && $this->isKeysAssocArray($keys)) {
+        if (!$this->isValidKeysArray($keys)) {
             throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
         }
         $keys_norm = $this->redisNormalizeArrayValuesLikeKeys($keys);
@@ -400,20 +400,25 @@ class Redis implements \Psr\SimpleCache\CacheInterface
 
     /**
      * Determine whether the given array is associative or not.
-     * @param array $arr The array to check.
+     * @param array $keys The array to check.
      * @return bool is associative?
      * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException in case not array was given.
      */
-    private function isKeysAssocArray($arr)
+    private function isValidKeysArray($keys)
     {
+        //In case it's a traversable object, we're already done.
+        if ($keys instanceof \Traversable) {
+            return true;
+        }
+
         //validate whether given argument is an array.
-        if (!is_array($arr)) {
+        if (!is_array($keys)) {
             throw new InvalidArgumentTypeException('keys', 'an array', $arr);
         }
         //an empty array is no associative array!
-        if (array() === $arr) {
+        if (array() === $keys) {
             return false;
         }
-        return (array_keys($arr) !== range(0, count($arr) - 1));
+        return (array_keys($keys) !== range(0, count($keys) - 1));
     }
 }

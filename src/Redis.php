@@ -395,7 +395,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         if (is_int($ttl)) {
             return (0 < $ttl) ? $ttl : 0;
         }
-        throw new InvalidArgumentTypeException('TTL', 'an integer, a \DateInterval or null', $str);
+        throw new InvalidArgumentTypeException('TTL', 'an integer, a \DateInterval or null', $ttl);
     }
 
     /**

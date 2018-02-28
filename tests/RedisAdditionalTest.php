@@ -49,6 +49,41 @@ class RedisAdditionalTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Data provider for invalid keys arrays
+     *
+     * @return array
+     */
+    public static function invalidKeysArrays()
+    {
+        return [
+            [new \stdClass()],
+            [array('key1' => 'value', 'key2' => 'another')],
+            [true],
+            ['key1, key2'],
+        ];
+    }
+
+    /**
+     * Data provider for valid keys arrays
+     *
+     * @return array
+     */
+    public static function validKeysArrays()
+    {
+        $gen = function () {
+            yield 'key1';
+            yield 'key2';
+        };
+        return [
+            [array()],
+            [array('key1','key2')],
+            [array('key')],
+            [['key']],
+            [$gen()],
+        ];
+    }
+
+    /**
      * The object of the class being tested, has to be created here.
      * The connection details have to be taken from the environment!
      * @return \kbATeam\Cache\Redis|\Psr\SimpleCache\CacheInterface
@@ -212,45 +247,19 @@ class RedisAdditionalTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function testGetMultipleWithWrongParameterType()
+    /**
+     * @dataProvider invalidKeysArrays
+     */
+    public function testGetMultipleWithInvalidKeysParameter($keys)
     {
-        $redis = $this->createRedisInstance();
-        $this->setExpectedException(
-            '\kbATeam\Cache\Exceptions\InvalidArgumentTypeException',
-            "keys must be an array, stdClass given!"
-        );
-        $redis->getMultiple(new \stdClass());
+        $this->assertFalse(Redis::isValidKeysArray($keys));
     }
 
-    public function testGetMuptipleWithInvalidArrayStructure()
+    /**
+     * @dataProvider validKeysArrays
+     */
+    public function testGetMultipleWithValidKeysParameter($keys)
     {
-        $redis = $this->createRedisInstance();
-        $this->setExpectedException(
-            '\kbATeam\Cache\Exceptions\InvalidArgumentTypeException',
-            "keys must be an array or an instance of \Traversable, array given!"
-        );
-        $get = array('key1' => 'value1', 'key2', 'value2');
-        $redis->getMultiple($get);
-    }
-
-    public function testDeleteMultipleWithWrongParameterType()
-    {
-        $redis = $this->createRedisInstance();
-        $this->setExpectedException(
-            '\kbATeam\Cache\Exceptions\InvalidArgumentTypeException',
-            "keys must be an array, stdClass given!"
-        );
-        $redis->deleteMultiple(new \stdClass());
-    }
-
-    public function testDeleteMuptipleWithInvalidArrayStructure()
-    {
-        $redis = $this->createRedisInstance();
-        $this->setExpectedException(
-            '\kbATeam\Cache\Exceptions\InvalidArgumentTypeException',
-            "keys must be an array or an instance of \Traversable, array given!"
-        );
-        $del = array('key1' => 'value1', 'key2', 'value2');
-        $redis->deleteMultiple($del);
+        $this->assertTrue(Redis::isValidKeysArray($keys));
     }
 }

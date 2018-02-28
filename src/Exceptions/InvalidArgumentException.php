@@ -32,6 +32,6 @@ class InvalidArgumentException extends \Exception implements \Psr\SimpleCache\In
         $code = 0,
         \Throwable $previous = null
     ) {
-        parent::__construct("Invalid Argument: ".$message, $code, $previous);
+        parent::__construct($message, $code, $previous);
     }
 }

@@ -67,10 +67,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         }
         $client = new \Redis();
         $client->pconnect($hostname, $port);
-        if (!is_null($password)) {
-            if (!$client->auth($password)) {
-                throw new InvalidArgumentException("Password authentication failed!");
-            }
+        if (!is_null($password) && !$client->auth($password)) {
+            throw new InvalidArgumentException("Password authentication failed!");
         }
         if (!$client->select($database)) {
             throw new InvalidArgumentException(sprintf("Invalid database index %u!", $database));

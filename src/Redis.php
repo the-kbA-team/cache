@@ -263,8 +263,10 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             foreach ($values as $key => $value) {
                 $key_norm = $this->redisValidateKey($key);
                 if (!$this->client->setex($key_norm, $ttl_norm, serialize($value))) {
+                    // @codeCoverageIgnoreStart
                     $result = false;
                     break;
+                    // @codeCoverageIgnoreStart
                 }
             }
         }

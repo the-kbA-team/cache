@@ -82,20 +82,19 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * Validates the given hostname and throws an exception in case it's not.
      * @param string $hostname The hostname to validate.
      * @return boolean Is the given hostname valid?
-     * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException in case the hostname is invalid.
      */
     public static function isValidHostname($hostname)
     {
         return (
             (
                 //valid chars check
-                !preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $hostname)
+                preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $hostname)
                 //overall length check
-                || !preg_match("/^.{1,253}$/", $hostname)
+                && preg_match("/^.{1,253}$/", $hostname)
                 //length of each label
-                || !preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $hostname)
+                && preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $hostname)
             )
-            && !filter_var($hostname, FILTER_VALIDATE_IP)
+            || filter_var($hostname, FILTER_VALIDATE_IP)
         );
     }
 

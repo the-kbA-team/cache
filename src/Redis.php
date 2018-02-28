@@ -110,12 +110,12 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function get($key, $default = null)
     {
-        $key_compat = $this->redisValidateKey($key);
-        $result_ser = $this->client->get($key_compat);
-        if (empty($result_ser)) {
+        $keyNormalized = $this->redisValidateKey($key);
+        $valueSerialized = $this->client->get($keyNormalized);
+        if (empty($valueSerialized)) {
             $result = $default;
         } else {
-            $result = unserialize($result_ser);
+            $result = unserialize($valueSerialized);
         }
         return $result;
     }
@@ -140,17 +140,17 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function set($key, $value, $ttl = null)
     {
-        $key_compat = $this->redisValidateKey($key);
-        $ttl_norm = $this->redisNormalizeTtl($ttl);
-        if (is_null($ttl_norm)) {
+        $keyNormalized = $this->redisValidateKey($key);
+        $ttlNormalized = $this->redisNormalizeTtl($ttl);
+        if (is_null($ttlNormalized)) {
             //no TTL
-            $result = $this->client->set($key_compat, serialize($value));
-        } elseif (0 === $ttl_norm) {
+            $result = $this->client->set($keyNormalized, serialize($value));
+        } elseif (0 === $ttlNormalized) {
             //ttl <= 0 means: delete!
-            $result = $this->client->del(array($key_compat));
+            $result = $this->client->del(array($keyNormalized));
         } else {
             //set ttl
-            $result = $this->client->setex($key_compat, $ttl_norm, serialize($value));
+            $result = $this->client->setex($keyNormalized, $ttlNormalized, serialize($value));
         }
         return $result;
     }
@@ -168,8 +168,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function delete($key)
     {
-        $key_compat = $this->redisValidateKey($key);
-        $this->client->del(array($key_compat));
+        $keyNormalized = $this->redisValidateKey($key);
+        $this->client->del(array($keyNormalized));
         return true;
     }
 
@@ -205,16 +205,16 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         $result = array();
         if ($keys instanceof \Traversable) {
             foreach ($keys as $key) {
-                $key_norm = $this->redisValidateKey($key);
-                $result[$key_norm] = $this->get($key, $default);
+                $keyNormalized = $this->redisValidateKey($key);
+                $result[$keyNormalized] = $this->get($key, $default);
             }
         } else {
-            $keys_norm = $this->redisNormalizeArrayValuesLikeKeys($keys);
-            foreach ($this->client->mget($keys_norm) as $pos => $value_ser) {
-                if (empty($value_ser)) {
+            $keysNormalized = $this->redisNormalizeArrayValuesLikeKeys($keys);
+            foreach ($this->client->mget($keysNormalized) as $pos => $valueSerialized) {
+                if (empty($valueSerialized)) {
                     $value = $default;
                 } else {
-                    $value = unserialize($value_ser);
+                    $value = unserialize($valueSerialized);
                 }
                 $result[$keys[$pos]] = $value;
             }
@@ -244,13 +244,13 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         if (!is_array($values) && !$values instanceof \Traversable) {
             throw new InvalidArgumentTypeException('values', 'an array or an instance of \Traversable', $values);
         }
-        $ttl_norm = $this->redisNormalizeTtl($ttl);
-        if (is_null($ttl_norm)) {
+        $ttlNormalized = $this->redisNormalizeTtl($ttl);
+        if (is_null($ttlNormalized)) {
             //without ttl use redis mset() but normalize keys before
             $result = $this->client->mset(
                 $this->redisNormalizeArrayKeysSerializeValue($values)
             );
-        } elseif (0 === $ttl_norm) {
+        } elseif (0 === $ttlNormalized) {
             //ttl <= 0 means delete the normalized keys from the array
             $result = $this->client->del(
                 $this->redisNormalizeArrayValuesLikeKeys(array_keys($values))
@@ -258,8 +258,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         } else {
             $result = true;
             foreach ($values as $key => $value) {
-                $key_norm = $this->redisValidateKey($key);
-                if (!$this->client->setex($key_norm, $ttl_norm, serialize($value))) {
+                $keyNormalized = $this->redisValidateKey($key);
+                if (!$this->client->setex($keyNormalized, $ttlNormalized, serialize($value))) {
                     // @codeCoverageIgnoreStart
                     $result = false;
                     break;
@@ -287,9 +287,9 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         if (!static::isValidKeysArray($keys)) {
             throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
         }
-        $keys_norm = $this->redisNormalizeArrayValuesLikeKeys($keys);
+        $keysNormalized = $this->redisNormalizeArrayValuesLikeKeys($keys);
         $this->client->del(
-            $this->redisNormalizeArrayValuesLikeKeys($keys_norm)
+            $this->redisNormalizeArrayValuesLikeKeys($keysNormalized)
         );
         return true;
     }
@@ -351,10 +351,10 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     {
         $result = array();
         foreach ($arr as $key => $value) {
-            $key_norm = $this->redisValidateKey($key);
-            $result[$key_norm] = serialize($value);
+            $keyNormalized = $this->redisValidateKey($key);
+            $result[$keyNormalized] = serialize($value);
         }
-        unset($key, $value, $key_norm);
+        unset($key, $value, $keyNormalized);
         return $result;
     }
 

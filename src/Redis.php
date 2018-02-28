@@ -54,7 +54,9 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     public static function tcp($hostname, $database, $password = null, $port = 6379)
     {
         //validate hostname/IP (throws exception in case it's not valid)
-        static::isHostnameValid($hostname);
+        if (!static::isValidHostname($hostname)) {
+            throw new InvalidArgumentException(sprintf("Invalid hostname/IP given: '%s'", $hostname));
+        }
         //validate database id
         if (!is_int($database) || 0 > $database) {
             throw new InvalidArgumentTypeException('database', 'integer >= 0', $database);
@@ -82,9 +84,10 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * @return boolean Is the given hostname valid?
      * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException in case the hostname is invalid.
      */
-    protected static function isHostnameValid($hostname)
+    public static function isValidHostname($hostname)
     {
-        if ((
+        return (
+            (
                 //valid chars check
                 !preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $hostname)
                 //overall length check
@@ -93,10 +96,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
                 || !preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $hostname)
             )
             && !filter_var($hostname, FILTER_VALIDATE_IP)
-        ) {
-            throw new InvalidArgumentException(sprintf("Invalid hostname/IP given: '%s'", $hostname));
-        }
-        return true;
+        );
     }
 
     /**

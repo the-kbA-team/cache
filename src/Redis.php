@@ -68,10 +68,10 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         $client = new \Redis();
         $client->pconnect($host, $port);
         if (!is_null($password) && !$client->auth($password)) {
-            throw new InvalidArgumentException("Password authentication failed!");
+            throw new InvalidArgumentException('Password authentication failed!');
         }
         if (!$client->select($database)) {
-            throw new InvalidArgumentException(sprintf("Invalid database index %u!", $database));
+            throw new InvalidArgumentException(sprintf('Invalid database index %u!', $database));
         }
         return new self($client);
     }
@@ -88,7 +88,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
                 //valid chars check
                 preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $host)
                 //overall length check
-                && preg_match("/^.{1,253}$/", $host)
+                && preg_match('/^.{1,253}$/', $host)
                 //length of each label
                 && preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $host)
             )

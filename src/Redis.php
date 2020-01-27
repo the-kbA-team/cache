@@ -115,6 +115,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         if (empty($valueSerialized)) {
             $result = $default;
         } else {
+            /** @noinspection UnserializeExploitsInspection */
             $result = unserialize($valueSerialized);
         }
         return $result;
@@ -232,6 +233,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             if (empty($valueSerialized)) {
                 $value = $default;
             } else {
+                /** @noinspection UnserializeExploitsInspection */
                 $value = unserialize($valueSerialized);
             }
             $result[$keys[$pos]] = $value;

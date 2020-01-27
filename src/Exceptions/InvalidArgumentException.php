@@ -2,6 +2,8 @@
 
 namespace kbATeam\Cache\Exceptions;
 
+use Exception;
+
 /**
  * Class kbATeam\Cache\Exceptions\InvalidArgumentException
  *
@@ -14,6 +16,6 @@ namespace kbATeam\Cache\Exceptions;
  * @license  MIT
  * @link     https://github.com/the-kbA-team/cache.git Repository
  */
-class InvalidArgumentException extends \Exception implements \Psr\SimpleCache\InvalidArgumentException
+class InvalidArgumentException extends Exception implements \Psr\SimpleCache\InvalidArgumentException
 {
 }

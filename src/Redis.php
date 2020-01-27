@@ -2,8 +2,12 @@
 
 namespace kbATeam\Cache;
 
+use DateInterval;
+use DateTime;
 use kbATeam\Cache\Exceptions\InvalidArgumentException;
 use kbATeam\Cache\Exceptions\InvalidArgumentTypeException;
+use Psr\SimpleCache\CacheInterface;
+use Traversable;
 
 /**
  * Class kbATeam\Cache\Redis
@@ -15,7 +19,7 @@ use kbATeam\Cache\Exceptions\InvalidArgumentTypeException;
  * @license  MIT
  * @link     https://github.com/the-kbA-team/cache.git Repository
  */
-class Redis implements \Psr\SimpleCache\CacheInterface
+class Redis implements CacheInterface
 {
 
     /**
@@ -204,7 +208,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
         }
 
-        if ($keys instanceof \Traversable) {
+        if ($keys instanceof Traversable) {
             return $this->getMultipleFromTraversable($keys, $default);
         }
 
@@ -284,7 +288,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     public function setMultiple($values, $ttl = null):bool
     {
-        if (!is_array($values) && !$values instanceof \Traversable) {
+        if (!is_array($values) && !$values instanceof Traversable) {
             throw new InvalidArgumentTypeException('values', 'an array or an instance of \Traversable', $values);
         }
         $ttlNormalized = $this->redisNormalizeTtl($ttl);
@@ -435,8 +439,8 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         if ($ttl === null) {
             return null;
         }
-        if ($ttl instanceof \DateInterval) {
-            $ttl = (int) \DateTime::createFromFormat('U', 0)->add($ttl)->format('U');
+        if ($ttl instanceof DateInterval) {
+            $ttl = (int) DateTime::createFromFormat('U', 0)->add($ttl)->format('U');
         }
         if (is_int($ttl)) {
             return (0 < $ttl) ? $ttl : 0;
@@ -452,7 +456,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     public static function isValidKeysArray($keys): bool
     {
         //In case it's a traversable object, we're already done.
-        if ($keys instanceof \Traversable) {
+        if ($keys instanceof Traversable) {
             return true;
         }
 

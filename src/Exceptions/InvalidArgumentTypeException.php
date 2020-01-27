@@ -27,7 +27,7 @@ class InvalidArgumentTypeException extends InvalidArgumentException
         $argName,
         $expected,
         &$given,
-        \Throwable $previous = null
+        Throwable $previous = null
     ) {
         //compile message from parameters
         $message = sprintf(

@@ -90,7 +90,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
                 //overall length check
                 && preg_match('/^.{1,253}$/', $host)
                 //length of each label
-                && preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $host)
+                && preg_match("/^[^.]{1,63}(\.[^.]{1,63})*$/", $host)
             )
             || filter_var($host, FILTER_VALIDATE_IP)
         );

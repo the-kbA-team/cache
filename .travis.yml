@@ -1,4 +1,6 @@
 language: php
+os:
+  - linux
 services: redis-server
 php:
   - 7.0

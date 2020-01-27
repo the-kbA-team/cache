@@ -1,9 +1,7 @@
 # kbA-Team cache
 
 [![License: MIT][license-mit]](LICENSE)
-[![Build Status][build-status-master]][travis-ci]
-[![Maintainability][maintainability-badge]][maintainability]
-[![Test Coverage][coverage-badge]][coverage]
+[![Build Status][build-status-php5]][travis-ci]
 
 Simple cache implementing [PSR-16: Common Interface for Caching Libraries][psr16] connecting to [Redis][redis] using [PhpRedis][phpredis].
 
@@ -18,7 +16,7 @@ We were in need of a _simple cache solution just for Redis_ without all the bell
 ### Add to your project
 
 ```bash
-composer require kba-team/cache "~1.0.0"
+composer require kba-team/cache "^1.0"
 ```
 
 We use [Semver][semver].
@@ -80,12 +78,8 @@ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' red
 ```
 
 [license-mit]: https://img.shields.io/badge/license-MIT-blue.svg
-[build-status-master]: https://travis-ci.org/the-kbA-team/cache.svg?branch=master
+[build-status-php5]: https://travis-ci.org/the-kbA-team/cache.svg?branch=php5
 [travis-ci]: https://travis-ci.org/the-kbA-team/cache
-[maintainability-badge]: https://api.codeclimate.com/v1/badges/96a719b084cfe899e643/maintainability
-[maintainability]: https://codeclimate.com/github/the-kbA-team/cache/maintainability
-[coverage-badge]: https://api.codeclimate.com/v1/badges/96a719b084cfe899e643/test_coverage
-[coverage]: https://codeclimate.com/github/the-kbA-team/cache/test_coverage
 [psr16]: https://www.php-fig.org/psr/psr-16/
 [redis]: https://redis.io/
 [predis]: https://github.com/nrk/predis

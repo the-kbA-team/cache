@@ -28,7 +28,7 @@ class InvalidArgumentException extends \Exception implements \Psr\SimpleCache\In
      * @since 5.1.0
      */
     public function __construct(
-        $message = "",
+        $message = '',
         $code = 0,
         Throwable $previous = null
     ) {

@@ -31,7 +31,7 @@ class InvalidArgumentTypeException extends InvalidArgumentException
     ) {
         //compile message from parameters
         $message = sprintf(
-            "%s must be %s, %s given!",
+            '%s must be %s, %s given!',
             $argName,
             $expected,
             $this->getArgType($given)

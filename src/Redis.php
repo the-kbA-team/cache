@@ -448,7 +448,6 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * Determine whether the given array is associative or not.
      * @param array $keys The array to check.
      * @return bool is associative?
-     * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException in case not array was given.
      */
     public static function isValidKeysArray($keys)
     {

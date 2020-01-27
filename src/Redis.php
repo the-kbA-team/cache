@@ -355,7 +355,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
         $result = $this->client->exists(
             $this->redisValidateKey($key)
         );
-        return $result;
+        return $result > 0;
     }
 
     /**

@@ -44,7 +44,7 @@ class InvalidArgumentTypeException extends InvalidArgumentException
      * @param mixed $given Referenced argument to get the type of.
      * @return string The determined type of the given argument.
      */
-    public function getArgType(&$given)
+    public function getArgType(&$given): string
     {
         if (is_object($given)) {
             return get_class($given);

@@ -37,7 +37,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * Get the redis client application.
      * @return \Redis
      */
-    public function getClient()
+    public function getClient(): \Redis
     {
         return $this->client;
     }
@@ -51,7 +51,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * @return \kbATeam\Cache\Redis An instance of this class connecting to the given server.
      * @throws \kbATeam\Cache\Exceptions\InvalidArgumentException In case any of the parameters is invalid.
      */
-    public static function tcp($host, $database, $password = null, $port = 6379)
+    public static function tcp($host, $database, $password = null, $port = 6379): Redis
     {
         //validate hostname/IP (throws exception in case it's not valid)
         if (!static::isValidHost($host)) {
@@ -81,7 +81,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * @param string $host The hostname to validate.
      * @return boolean Is the given hostname valid?
      */
-    public static function isValidHost($host)
+    public static function isValidHost($host): bool
     {
         return (
             (
@@ -397,7 +397,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * @return array The array with normalized keys.
      * @throws \Psr\SimpleCache\InvalidArgumentException in case one of the keys is invalid.
      */
-    private function redisNormalizeArrayKeysSerializeValue($arr)
+    private function redisNormalizeArrayKeysSerializeValue($arr): array
     {
         $result = array();
         foreach ($arr as $key => $value) {
@@ -414,7 +414,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * @return array array with normalized values.
      * @throws \Psr\SimpleCache\InvalidArgumentException in case one of the values is invalid as a key.
      */
-    private function redisNormalizeArrayValuesLikeKeys($arr)
+    private function redisNormalizeArrayValuesLikeKeys($arr): array
     {
         $result = array();
         foreach ($arr as $key) {
@@ -449,7 +449,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * @param array $keys The array to check.
      * @return bool is associative?
      */
-    public static function isValidKeysArray($keys)
+    public static function isValidKeysArray($keys): bool
     {
         //In case it's a traversable object, we're already done.
         if ($keys instanceof \Traversable) {

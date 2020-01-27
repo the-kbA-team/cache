@@ -14,7 +14,7 @@
     "predis"
   ],
   "require": {
-    "php": ">=5.5",
+    "php": "^5.5",
     "ext-redis": "*",
     "psr/simple-cache": "~1.0"
   },

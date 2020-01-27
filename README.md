@@ -18,7 +18,7 @@ We were in need of a _simple cache solution just for Redis_ without all the bell
 ### Add to your project
 
 ```bash
-composer require kba-team/cache "~1.0.0"
+composer require kba-team/cache "^1.1"
 ```
 
 We use [Semver][semver].

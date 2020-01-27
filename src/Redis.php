@@ -62,12 +62,12 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             throw new InvalidArgumentTypeException('database', 'integer >= 0', $database);
         }
         //validate password
-        if (!is_null($password) && !is_string($password)) {
+        if ($password !== null && !is_string($password)) {
             throw new InvalidArgumentTypeException('password', 'a string', $password);
         }
         $client = new \Redis();
         $client->pconnect($host, $port);
-        if (!is_null($password) && !$client->auth($password)) {
+        if ($password !== null && !$client->auth($password)) {
             throw new InvalidArgumentException('Password authentication failed!');
         }
         if (!$client->select($database)) {
@@ -143,7 +143,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
     {
         $keyNormalized = $this->redisValidateKey($key);
         $ttlNormalized = $this->redisNormalizeTtl($ttl);
-        if (is_null($ttlNormalized)) {
+        if ($ttlNormalized === null) {
             //no TTL
             $result = $this->client->set($keyNormalized, serialize($value));
         } elseif (0 === $ttlNormalized) {
@@ -288,7 +288,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
             throw new InvalidArgumentTypeException('values', 'an array or an instance of \Traversable', $values);
         }
         $ttlNormalized = $this->redisNormalizeTtl($ttl);
-        if (is_null($ttlNormalized)) {
+        if ($ttlNormalized === null) {
             //without ttl use redis mset() but normalize keys before
             $result = $this->client->mset(
                 $this->redisNormalizeArrayKeysSerializeValue($values)
@@ -432,7 +432,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      */
     private function redisNormalizeTtl($ttl)
     {
-        if (is_null($ttl)) {
+        if ($ttl === null) {
             return null;
         }
         if ($ttl instanceof \DateInterval) {

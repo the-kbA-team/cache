@@ -139,7 +139,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * @throws \Psr\SimpleCache\InvalidArgumentException
      *   MUST be thrown if the $key string is not a legal value.
      */
-    public function set($key, $value, $ttl = null)
+    public function set($key, $value, $ttl = null):bool
     {
         $keyNormalized = $this->redisValidateKey($key);
         $ttlNormalized = $this->redisNormalizeTtl($ttl);
@@ -167,7 +167,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * @throws \Psr\SimpleCache\InvalidArgumentException
      *   MUST be thrown if the $key string is not a legal value.
      */
-    public function delete($key)
+    public function delete($key):bool
     {
         $keyNormalized = $this->redisValidateKey($key);
         $this->client->del(array($keyNormalized));
@@ -179,7 +179,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      *
      * @return bool True on success and false on failure.
      */
-    public function clear()
+    public function clear():bool
     {
         return $this->client->flushdb(); //never fails
     }
@@ -282,7 +282,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      *   MUST be thrown if $values is neither an array nor a Traversable,
      *   or if any of the $values are not a legal value.
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple($values, $ttl = null):bool
     {
         if (!is_array($values) && !$values instanceof \Traversable) {
             throw new InvalidArgumentTypeException('values', 'an array or an instance of \Traversable', $values);
@@ -325,7 +325,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      *   MUST be thrown if $keys is neither an array nor a Traversable,
      *   or if any of the $keys are not a legal value.
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple($keys):bool
     {
         if (!static::isValidKeysArray($keys)) {
             throw new InvalidArgumentTypeException('keys', 'an array or an instance of \Traversable', $keys);
@@ -352,7 +352,7 @@ class Redis implements \Psr\SimpleCache\CacheInterface
      * @throws \Psr\SimpleCache\InvalidArgumentException
      *   MUST be thrown if the $key string is not a legal value.
      */
-    public function has($key)
+    public function has($key):bool
     {
         $result = $this->client->exists(
             $this->redisValidateKey($key)

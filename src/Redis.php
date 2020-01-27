@@ -117,12 +117,10 @@ class Redis implements CacheInterface
         $keyNormalized = $this->redisValidateKey($key);
         $valueSerialized = $this->client->get($keyNormalized);
         if (empty($valueSerialized)) {
-            $result = $default;
-        } else {
-            /** @noinspection UnserializeExploitsInspection */
-            $result = unserialize($valueSerialized);
+            return $default;
         }
-        return $result;
+        /** @noinspection UnserializeExploitsInspection */
+        return unserialize($valueSerialized);
     }
 
     /**
@@ -149,15 +147,14 @@ class Redis implements CacheInterface
         $ttlNormalized = $this->redisNormalizeTtl($ttl);
         if ($ttlNormalized === null) {
             //no TTL
-            $result = $this->client->set($keyNormalized, serialize($value));
-        } elseif (0 === $ttlNormalized) {
-            //ttl <= 0 means: delete!
-            $result = $this->client->del(array($keyNormalized));
-        } else {
-            //set ttl
-            $result = $this->client->setex($keyNormalized, $ttlNormalized, serialize($value));
+            return $this->client->set($keyNormalized, serialize($value));
         }
-        return $result;
+        if (0 === $ttlNormalized) {
+            //ttl <= 0 means: delete!
+            return $this->client->del(array($keyNormalized));
+        }
+        //set ttl
+        return $this->client->setex($keyNormalized, $ttlNormalized, serialize($value));
     }
 
     /**
@@ -294,24 +291,24 @@ class Redis implements CacheInterface
         $ttlNormalized = $this->redisNormalizeTtl($ttl);
         if ($ttlNormalized === null) {
             //without ttl use redis mset() but normalize keys before
-            $result = $this->client->mset(
+            return $this->client->mset(
                 $this->redisNormalizeArrayKeysSerializeValue($values)
             );
-        } elseif (0 === $ttlNormalized) {
+        }
+        if (0 === $ttlNormalized) {
             //ttl <= 0 means delete the normalized keys from the array
-            $result = $this->client->del(
+            return $this->client->del(
                 $this->redisNormalizeArrayValuesLikeKeys(array_keys($values))
             );
-        } else {
-            $result = true;
-            foreach ($values as $key => $value) {
-                $keyNormalized = $this->redisValidateKey($key);
-                if (!$this->client->setex($keyNormalized, $ttlNormalized, serialize($value))) {
-                    // @codeCoverageIgnoreStart
-                    $result = false;
-                    break;
-                    // @codeCoverageIgnoreEnd
-                }
+        }
+        $result = true;
+        foreach ($values as $key => $value) {
+            $keyNormalized = $this->redisValidateKey($key);
+            if (!$this->client->setex($keyNormalized, $ttlNormalized, serialize($value))) {
+                // @codeCoverageIgnoreStart
+                $result = false;
+                break;
+                // @codeCoverageIgnoreEnd
             }
         }
         return $result;

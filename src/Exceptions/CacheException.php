@@ -2,6 +2,8 @@
 
 namespace kbATeam\Cache\Exceptions;
 
+use Exception;
+
 /**
  * Class kbATeam\Cache\Exceptions\CacheException
  *
@@ -12,7 +14,7 @@ namespace kbATeam\Cache\Exceptions;
  * @license  MIT
  * @link     https://github.com/the-kbA-team/cache.git Repository
  */
-class CacheException extends \Exception implements \Psr\SimpleCache\CacheException
+class CacheException extends Exception implements \Psr\SimpleCache\CacheException
 {
 
 }

@@ -23,7 +23,7 @@ class Redis implements CacheInterface
 {
 
     /**
-     * @var \Redis
+     * @var \Redis|\RedisCluster
      */
     protected $client;
 
@@ -31,7 +31,7 @@ class Redis implements CacheInterface
      * Redis simple cache constructor.
      * @param \Redis $client The redis client to connect to handle the redis connection.
      */
-    public function __construct(\Redis $client)
+    public function __construct(\Redis|\RedisCluster $client)
     {
         $client->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
         $this->client = $client;
